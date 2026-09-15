@@ -14,6 +14,7 @@ use App\Models\TicketHistory;
 use App\Models\TicketRating;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 class TicketController extends Controller
@@ -138,7 +139,7 @@ class TicketController extends Controller
      */
     public function show(Ticket $ticket)
     {
-        $this->authorize('view', $ticket);
+        Gate::authorize('view', $ticket);
 
         $ticket->load([
             'category',
@@ -160,7 +161,7 @@ class TicketController extends Controller
      */
     public function addComment(Request $request, Ticket $ticket)
     {
-        $this->authorize('view', $ticket);
+        Gate::authorize('view', $ticket);
 
         $request->validate([
             'comment' => ['required', 'string', 'min:3', 'max:2000'],
@@ -189,7 +190,7 @@ class TicketController extends Controller
      */
     public function confirmResolution(Ticket $ticket)
     {
-        $this->authorize('view', $ticket);
+        Gate::authorize('view', $ticket);
 
         abort_unless($ticket->status === Ticket::STATUS_RESOLVED, 403);
 
@@ -218,7 +219,7 @@ class TicketController extends Controller
      */
     public function showRateForm(Ticket $ticket)
     {
-        $this->authorize('view', $ticket);
+        Gate::authorize('view', $ticket);
         abort_unless(in_array($ticket->status, [Ticket::STATUS_RESOLVED, Ticket::STATUS_CLOSED]), 403);
         abort_if($ticket->rating()->exists(), 403);
 
@@ -230,7 +231,7 @@ class TicketController extends Controller
      */
     public function submitRating(Request $request, Ticket $ticket)
     {
-        $this->authorize('view', $ticket);
+        Gate::authorize('view', $ticket);
         abort_if($ticket->rating()->exists(), 403);
 
         $request->validate([
