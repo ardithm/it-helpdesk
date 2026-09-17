@@ -5,6 +5,8 @@ use App\Http\Controllers\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Dashboard\HelpdeskDashboardController;
 use App\Http\Controllers\Dashboard\TechnicianDashboardController;
 use App\Http\Controllers\Dashboard\UserDashboardController;
+use App\Http\Controllers\KnowledgeBaseManageController;
+use App\Http\Controllers\KnowledgeBasePortalController;
 use App\Http\Controllers\Ticket\HelpdeskTicketController;
 use App\Http\Controllers\Ticket\TechnicianTicketController;
 use App\Http\Controllers\Ticket\TicketController;
@@ -14,8 +16,6 @@ use App\Http\Controllers\Admin\TicketCategoryController;
 use App\Http\Controllers\Admin\SlaPolicyController;
 use App\Http\Controllers\Admin\AssetController;
 use App\Http\Controllers\Admin\ReportController;
-use App\Http\Controllers\KnowledgeBaseController;
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -80,6 +80,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/{ticket}/rate',                [TicketController::class, 'showRateForm'])->name('rate');
             Route::post('/{ticket}/rate',               [TicketController::class, 'submitRating'])->name('rate.submit');
         });
+
+        Route::prefix('knowledge')->name('knowledge.')->group(function () {
+            Route::get('/', [KnowledgeBasePortalController::class, 'index'])->name('index');
+            Route::get('/{id}', [KnowledgeBasePortalController::class, 'show'])->name('show');
+        });
     });
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -112,6 +117,18 @@ Route::middleware('auth')->group(function () {
             Route::post('/{ticket}/resolve',        [TechnicianTicketController::class, 'resolve'])->name('resolve');
             Route::post('/{ticket}/comment',        [TechnicianTicketController::class, 'addComment'])->name('comment');
         });
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // KNOWLEDGE BASE MANAGEMENT (ADMIN & TECHNICIAN)
+    // ─────────────────────────────────────────────────────────────────────────
+    Route::middleware('role:admin,technician')->prefix('manage/knowledge')->name('manage.knowledge.')->group(function () {
+        Route::get('/', [KnowledgeBaseManageController::class, 'index'])->name('index');
+        Route::get('/create', [KnowledgeBaseManageController::class, 'create'])->name('create');
+        Route::post('/', [KnowledgeBaseManageController::class, 'store'])->name('store');
+        Route::get('/{knowledge}/edit', [KnowledgeBaseManageController::class, 'edit'])->name('edit');
+        Route::put('/{knowledge}', [KnowledgeBaseManageController::class, 'update'])->name('update');
+        Route::delete('/{knowledge}', [KnowledgeBaseManageController::class, 'destroy'])->name('destroy');
     });
 
     // ─────────────────────────────────────────────────────────────────────────

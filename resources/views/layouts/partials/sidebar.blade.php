@@ -80,6 +80,13 @@
                 'icon'   => '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
                 'active' => str_starts_with($currentRoute, 'technician.tickets'),
             ])
+
+            @include('layouts.partials.sidebar-item', [
+                'route'  => 'manage.knowledge.index',
+                'label'  => 'Kelola Knowledge Base',
+                'icon'   => '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M8 7h6"/><path d="M12 11h.01"/><path d="M16 11h.01"/>',
+                'active' => str_starts_with($currentRoute, 'manage.knowledge'),
+            ])
         @endif
 
         {{-- ── Admin: Master Data ─────────────────────────────────────────── --}}
@@ -133,10 +140,10 @@
         <p class="px-3 pt-4 pb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Lainnya</p>
 
         @include('layouts.partials.sidebar-item', [
-            'route'  => 'kb.index',
-            'label'  => 'Knowledge Base',
+            'route'  => 'knowledge.index',
+            'label'  => 'Knowledge Base (Pusat Bantuan)',
             'icon'   => '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M8 7h6"/>',
-            'active' => str_starts_with($currentRoute, 'kb.'),
+            'active' => str_starts_with($currentRoute, 'knowledge.'),
         ])
 
     </nav>
