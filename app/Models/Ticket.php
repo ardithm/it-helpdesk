@@ -133,7 +133,7 @@ class Ticket extends Model
             return 'breached';
         }
 
-        if ($this->resolution_deadline->diffInMinutes(now()) >= -60) {
+        if (now()->diffInMinutes($this->resolution_deadline, false) <= 60) {
             return 'near_deadline';
         }
 

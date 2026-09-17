@@ -92,8 +92,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/',                         [HelpdeskTicketController::class, 'index'])->name('index');
             Route::get('/{ticket}',                 [HelpdeskTicketController::class, 'show'])->name('show');
             Route::post('/{ticket}/assign',         [HelpdeskTicketController::class, 'assign'])->name('assign');
-            Route::post('/{ticket}/classify',       [HelpdeskTicketController::class, 'classify'])->name('classify');
-            Route::post('/{ticket}/status',         [HelpdeskTicketController::class, 'updateStatus'])->name('status');
+            Route::patch('/{ticket}/classify',      [HelpdeskTicketController::class, 'classify'])->name('classify');
+            Route::patch('/{ticket}/status',        [HelpdeskTicketController::class, 'updateStatus'])->name('status');
             Route::post('/{ticket}/comment',        [HelpdeskTicketController::class, 'addComment'])->name('comment');
         });
     });
