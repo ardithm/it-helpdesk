@@ -9,9 +9,17 @@ use Illuminate\Validation\Rule;
 
 class TicketCategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $categories = TicketCategory::withCount('tickets')->orderBy('name')->paginate(15);
+        $query = TicketCategory::withCount('tickets')->orderBy('name');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+        }
+
+        $categories = $query->paginate(15)->withQueryString();
         return view('admin.categories.index', compact('categories'));
     }
 
