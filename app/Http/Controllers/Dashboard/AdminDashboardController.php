@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
+use App\Models\TicketCategory;
 use App\Models\User;
 use App\Models\TicketRating;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class AdminDashboardController extends Controller
 {
@@ -66,13 +69,68 @@ class AdminDashboardController extends Controller
             ->take(8)
             ->get();
 
+        // ── Chart Data: Tren Tiket 7 Hari Terakhir ───────────────────────────
+        $trendDays = 7;
+        $trendLabels = [];
+        $trendData = [];
+        $startDate = now()->subDays($trendDays - 1)->startOfDay();
+
+        $ticketsByDate = Ticket::where('created_at', '>=', $startDate)
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as total')
+            ->groupBy('date')
+            ->pluck('total', 'date')
+            ->toArray();
+
+        for ($i = 0; $i < $trendDays; $i++) {
+            $date = now()->subDays($trendDays - 1 - $i)->format('Y-m-d');
+            $trendLabels[] = Carbon::parse($date)->translatedFormat('d M');
+            $trendData[] = $ticketsByDate[$date] ?? 0;
+        }
+
+        $chartTrend = ['labels' => $trendLabels, 'data' => $trendData];
+
+        // ── Chart Data: Distribusi Status ─────────────────────────────────────
+        $statusCounts = Ticket::selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
+
+        $chartStatus = [
+            'labels' => ['Open', 'Assigned', 'In Progress', 'Waiting', 'Resolved', 'Closed'],
+            'data'   => [
+                $statusCounts['open'] ?? 0,
+                $statusCounts['assigned'] ?? 0,
+                $statusCounts['in_progress'] ?? 0,
+                $statusCounts['waiting'] ?? 0,
+                $statusCounts['resolved'] ?? 0,
+                $statusCounts['closed'] ?? 0,
+            ],
+        ];
+
+        // ── Chart Data: Distribusi Kategori ───────────────────────────────────
+        $categoryData = Ticket::join('ticket_categories', 'tickets.category_id', '=', 'ticket_categories.id')
+            ->selectRaw('ticket_categories.name, COUNT(*) as total')
+            ->groupBy('ticket_categories.name')
+            ->orderByDesc('total')
+            ->take(6)
+            ->pluck('total', 'name')
+            ->toArray();
+
+        $chartCategory = [
+            'labels' => array_keys($categoryData),
+            'data'   => array_values($categoryData),
+        ];
+
         return view('dashboard.admin', compact(
             'stats',
             'slaCompliance',
             'avgRating',
             'byPriority',
             'technicianPerformance',
-            'recentTickets'
+            'recentTickets',
+            'chartTrend',
+            'chartStatus',
+            'chartCategory'
         ));
     }
 }

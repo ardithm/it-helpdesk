@@ -88,7 +88,63 @@
     </div>
 </div>
 
-<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+{{-- ══════════════════════════════════════════════════════════════════════════ --}}
+{{-- GRAFIK VISUALISASI --}}
+{{-- ══════════════════════════════════════════════════════════════════════════ --}}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+    {{-- Line Chart: Tren Tiket 7 Hari Terakhir --}}
+    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h3 class="text-base font-semibold text-slate-800">Tren Tiket Masuk</h3>
+                <p class="text-xs text-slate-400 mt-0.5">7 hari terakhir</p>
+            </div>
+            <div class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            </div>
+        </div>
+        <div class="relative" style="height: 260px;">
+            <canvas id="chartTrend"></canvas>
+        </div>
+    </div>
+
+    {{-- Doughnut Chart: Distribusi Status --}}
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h3 class="text-base font-semibold text-slate-800">Status Tiket</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Distribusi saat ini</p>
+            </div>
+            <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+            </div>
+        </div>
+        <div class="relative flex items-center justify-center" style="height: 260px;">
+            <canvas id="chartStatus"></canvas>
+        </div>
+    </div>
+
+</div>
+
+{{-- Row: Kategori Chart + Technician Performance --}}
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
+
+    {{-- Doughnut Chart: Distribusi Kategori --}}
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h3 class="text-base font-semibold text-slate-800">Tiket per Kategori</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Top 6 kategori</p>
+            </div>
+            <div class="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>
+            </div>
+        </div>
+        <div class="relative flex items-center justify-center" style="height: 260px;">
+            <canvas id="chartCategory"></canvas>
+        </div>
+    </div>
 
     {{-- Tiket Terbaru --}}
     <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -132,33 +188,242 @@
             </table>
         </div>
     </div>
+</div>
 
-    {{-- Top Technician --}}
-    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-100">
-            <h2 class="text-sm font-semibold text-slate-800">Performa Teknisi</h2>
+{{-- Performa Teknisi (Horizontal Bar Chart) --}}
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h3 class="text-base font-semibold text-slate-800">Performa Teknisi</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Top 5 — Tiket diselesaikan</p>
+            </div>
+            <div class="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
         </div>
-        @if($technicianPerformance->isEmpty())
-            <div class="px-5 py-6 text-center">
-                <p class="text-sm text-slate-400">Belum ada data performa.</p>
-            </div>
-        @else
-            <div class="divide-y divide-slate-50">
-                @foreach($technicianPerformance as $i => $tech)
-                    <div class="px-5 py-3.5 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold {{ $i === 0 ? 'bg-purple-100 text-purple-600' : 'bg-slate-100 text-slate-500' }}">
-                                {{ $i + 1 }}
-                            </span>
-                            <span class="text-sm text-slate-700">{{ $tech->name }}</span>
-                        </div>
-                        <span class="text-sm font-medium text-slate-500">{{ $tech->total_handled }} selesai</span>
-                    </div>
-                @endforeach
-            </div>
-        @endif
+        <div class="relative" style="height: 220px;">
+            <canvas id="chartTechnician"></canvas>
+        </div>
     </div>
 
+    {{-- Placeholder / Summary --}}
+    <div class="bg-white rounded-2xl shadow-sm p-6 flex flex-col justify-center">
+        <div class="text-center">
+            <div class="w-16 h-16 mx-auto bg-purple-50 rounded-2xl flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M8 18v-1"/><path d="M16 18v-3"/></svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800 mb-2">Laporan Lengkap</h3>
+            <p class="text-sm text-slate-500 mb-4">Lihat laporan detail dengan filter lanjutan, export ke Excel & PDF.</p>
+            <a href="{{ route('admin.reports.index') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-xl shadow-sm transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Buka Laporan
+            </a>
+        </div>
+    </div>
 </div>
 
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    const fontFamily = "'Inter', sans-serif";
+    Chart.defaults.font.family = fontFamily;
+    Chart.defaults.font.size = 12;
+    Chart.defaults.color = '#94A3B8';
+
+    // ── 1. Line Chart: Tren Tiket ────────────────────────────────────────
+    const trendCtx = document.getElementById('chartTrend').getContext('2d');
+    const gradient = trendCtx.createLinearGradient(0, 0, 0, 260);
+    gradient.addColorStop(0, 'rgba(139, 92, 246, 0.15)');
+    gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
+
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: @json($chartTrend['labels']),
+            datasets: [{
+                label: 'Tiket Masuk',
+                data: @json($chartTrend['data']),
+                borderColor: '#8B5CF6',
+                backgroundColor: gradient,
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#8B5CF6',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1E293B',
+                    titleColor: '#F8FAFC',
+                    bodyColor: '#CBD5E1',
+                    padding: 12,
+                    cornerRadius: 10,
+                    displayColors: false,
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#94A3B8', font: { size: 11 } },
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#F1F5F9', drawBorder: false },
+                    ticks: {
+                        color: '#94A3B8',
+                        font: { size: 11 },
+                        stepSize: 1,
+                        callback: v => Number.isInteger(v) ? v : null,
+                    },
+                    border: { display: false },
+                }
+            }
+        }
+    });
+
+    // ── 2. Doughnut Chart: Distribusi Status ──────────────────────────────
+    new Chart(document.getElementById('chartStatus'), {
+        type: 'doughnut',
+        data: {
+            labels: @json($chartStatus['labels']),
+            datasets: [{
+                data: @json($chartStatus['data']),
+                backgroundColor: [
+                    '#3B82F6', // Open — blue
+                    '#8B5CF6', // Assigned — purple
+                    '#F59E0B', // In Progress — amber
+                    '#F97316', // Waiting — orange
+                    '#10B981', // Resolved — emerald
+                    '#6B7280', // Closed — gray
+                ],
+                borderWidth: 0,
+                hoverOffset: 8,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 12,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        font: { size: 11 }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#1E293B',
+                    padding: 10,
+                    cornerRadius: 8,
+                }
+            }
+        }
+    });
+
+    // ── 3. Doughnut Chart: Distribusi Kategori ───────────────────────────
+    new Chart(document.getElementById('chartCategory'), {
+        type: 'doughnut',
+        data: {
+            labels: @json($chartCategory['labels']),
+            datasets: [{
+                data: @json($chartCategory['data']),
+                backgroundColor: [
+                    '#8B5CF6', '#6366F1', '#3B82F6', '#14B8A6', '#F59E0B', '#EF4444'
+                ],
+                borderWidth: 0,
+                hoverOffset: 8,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 12,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        font: { size: 11 }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#1E293B',
+                    padding: 10,
+                    cornerRadius: 8,
+                }
+            }
+        }
+    });
+
+    // ── 4. Horizontal Bar Chart: Performa Teknisi ────────────────────────
+    new Chart(document.getElementById('chartTechnician'), {
+        type: 'bar',
+        data: {
+            labels: @json($technicianPerformance->pluck('name')),
+            datasets: [{
+                label: 'Tiket Selesai',
+                data: @json($technicianPerformance->pluck('total_handled')),
+                backgroundColor: [
+                    'rgba(139, 92, 246, 0.8)',
+                    'rgba(99, 102, 241, 0.8)',
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(20, 184, 166, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                ],
+                borderRadius: 8,
+                borderSkipped: false,
+                barThickness: 28,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1E293B',
+                    padding: 10,
+                    cornerRadius: 8,
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: { color: '#F1F5F9', drawBorder: false },
+                    ticks: {
+                        stepSize: 1,
+                        callback: v => Number.isInteger(v) ? v : null,
+                        font: { size: 11 }
+                    },
+                    border: { display: false },
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { font: { size: 12 }, color: '#475569' },
+                }
+            }
+        }
+    });
+
+});
+</script>
+@endpush

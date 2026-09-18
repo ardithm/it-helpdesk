@@ -128,6 +128,45 @@
     </div>
 </div>
 
+{{-- ══════════════════════════════════════════════════════════════════════════ --}}
+{{-- GRAFIK VISUALISASI --}}
+{{-- ══════════════════════════════════════════════════════════════════════════ --}}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+    {{-- Area/Line Chart: Tren Tiket Harian --}}
+    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h3 class="text-base font-semibold text-slate-800">Tren Tiket Harian</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Berdasarkan filter aktif</p>
+            </div>
+            <div class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            </div>
+        </div>
+        <div class="relative" style="height: 260px;">
+            <canvas id="reportChartTrend"></canvas>
+        </div>
+    </div>
+
+    {{-- Doughnut Chart: Komposisi Prioritas --}}
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h3 class="text-base font-semibold text-slate-800">Komposisi Prioritas</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Berdasarkan filter aktif</p>
+            </div>
+            <div class="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+            </div>
+        </div>
+        <div class="relative flex items-center justify-center" style="height: 260px;">
+            <canvas id="reportChartPriority"></canvas>
+        </div>
+    </div>
+
+</div>
+
 {{-- Data Table --}}
 <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
     <div class="overflow-auto">
@@ -215,3 +254,116 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    const fontFamily = "'Inter', sans-serif";
+    Chart.defaults.font.family = fontFamily;
+    Chart.defaults.font.size = 12;
+    Chart.defaults.color = '#94A3B8';
+
+    // ── 1. Area/Line Chart: Tren Tiket Harian ────────────────────────────
+    const trendCtx = document.getElementById('reportChartTrend').getContext('2d');
+    const gradient = trendCtx.createLinearGradient(0, 0, 0, 260);
+    gradient.addColorStop(0, 'rgba(139, 92, 246, 0.15)');
+    gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
+
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: @json($chartTrend['labels']),
+            datasets: [{
+                label: 'Tiket per Hari',
+                data: @json($chartTrend['data']),
+                borderColor: '#8B5CF6',
+                backgroundColor: gradient,
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#8B5CF6',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1E293B',
+                    titleColor: '#F8FAFC',
+                    bodyColor: '#CBD5E1',
+                    padding: 12,
+                    cornerRadius: 10,
+                    displayColors: false,
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#94A3B8', font: { size: 11 }, maxRotation: 45 },
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#F1F5F9', drawBorder: false },
+                    ticks: {
+                        color: '#94A3B8',
+                        font: { size: 11 },
+                        stepSize: 1,
+                        callback: v => Number.isInteger(v) ? v : null,
+                    },
+                    border: { display: false },
+                }
+            }
+        }
+    });
+
+    // ── 2. Doughnut Chart: Komposisi Prioritas ───────────────────────────
+    new Chart(document.getElementById('reportChartPriority'), {
+        type: 'doughnut',
+        data: {
+            labels: @json($chartPriority['labels']),
+            datasets: [{
+                data: @json($chartPriority['data']),
+                backgroundColor: [
+                    '#EF4444', // Critical — red
+                    '#F97316', // High — orange
+                    '#3B82F6', // Medium — blue
+                    '#94A3B8', // Low — slate
+                ],
+                borderWidth: 0,
+                hoverOffset: 8,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 12,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        font: { size: 11 }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#1E293B',
+                    padding: 10,
+                    cornerRadius: 8,
+                }
+            }
+        }
+    });
+
+});
+</script>
+@endpush

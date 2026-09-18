@@ -9,6 +9,7 @@ use App\Models\TicketRating;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
@@ -20,7 +21,7 @@ class ReportController extends Controller
     {
         $query = $this->buildQuery($request);
 
-        $tickets = (clone $query)->paginate(20)->withQueryString();
+        $tickets = (clone $query)->latest()->paginate(20)->withQueryString();
 
         // ── Summary stats ──────────────────────────────────────────────────────
         $baseQuery = $this->buildQuery($request);
@@ -47,7 +48,46 @@ class ReportController extends Controller
         $technicians = User::where('role', 'technician')->where('is_active', true)->orderBy('name')->get();
         $categories  = \App\Models\TicketCategory::active()->orderBy('name')->get();
 
-        return view('admin.reports.index', compact('tickets', 'summary', 'technicians', 'categories'));
+        // ── Chart Data: Tren Tiket Harian ────────────────────────────────────
+        $from = $request->filled('from') ? Carbon::parse($request->from) : now()->subDays(13);
+        $to   = $request->filled('to')   ? Carbon::parse($request->to)   : now();
+        $diffDays = (int) $from->diffInDays($to) + 1;
+
+        $chartQuery = $this->buildQuery($request);
+        $ticketsByDate = (clone $chartQuery)
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as total')
+            ->groupBy('date')
+            ->pluck('total', 'date')
+            ->toArray();
+
+        $trendLabels = [];
+        $trendData = [];
+        for ($i = 0; $i < $diffDays; $i++) {
+            $date = $from->copy()->addDays($i)->format('Y-m-d');
+            $trendLabels[] = Carbon::parse($date)->translatedFormat('d M');
+            $trendData[] = $ticketsByDate[$date] ?? 0;
+        }
+        $chartTrend = ['labels' => $trendLabels, 'data' => $trendData];
+
+        // ── Chart Data: Komposisi Prioritas ──────────────────────────────────
+        $priorityQuery = $this->buildQuery($request);
+        $priorityCounts = (clone $priorityQuery)
+            ->selectRaw('priority, COUNT(*) as total')
+            ->groupBy('priority')
+            ->pluck('total', 'priority')
+            ->toArray();
+
+        $chartPriority = [
+            'labels' => ['Critical', 'High', 'Medium', 'Low'],
+            'data'   => [
+                $priorityCounts['critical'] ?? 0,
+                $priorityCounts['high'] ?? 0,
+                $priorityCounts['medium'] ?? 0,
+                $priorityCounts['low'] ?? 0,
+            ],
+        ];
+
+        return view('admin.reports.index', compact('tickets', 'summary', 'technicians', 'categories', 'chartTrend', 'chartPriority'));
     }
 
     /**
@@ -65,7 +105,7 @@ class ReportController extends Controller
 
         // ── PDF ────────────────────────────────────────────────────────────────
         $query   = $this->buildQuery($request);
-        $tickets = $query->get();
+        $tickets = (clone $query)->latest()->get();
 
         $baseQuery = $this->buildQuery($request);
         $summary = [
@@ -125,7 +165,7 @@ class ReportController extends Controller
             $query->whereHas('assignments', fn ($q) => $q->where('technician_id', $request->technician_id));
         }
 
-        return $query->latest();
+        return $query;
     }
 }
 
