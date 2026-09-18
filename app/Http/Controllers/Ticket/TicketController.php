@@ -12,9 +12,13 @@ use App\Models\TicketCategory;
 use App\Models\TicketComment;
 use App\Models\TicketHistory;
 use App\Models\TicketRating;
+use App\Models\User;
+use App\Notifications\NewTicketCommentNotification;
+use App\Notifications\TicketCreatedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
 class TicketController extends Controller
@@ -124,6 +128,10 @@ class TicketController extends Controller
 
             AuditLog::record('ticket.created', $ticket, null, ['ticket_number' => $ticket->ticket_number]);
 
+            // Notify Helpdesk & Admin
+            $helpdesks = User::whereIn('role', ['admin', 'helpdesk'])->where('is_active', true)->get();
+            Notification::send($helpdesks, new TicketCreatedNotification($ticket));
+
             DB::commit();
 
             return redirect()->route('user.tickets.show', $ticket)
@@ -181,6 +189,11 @@ class TicketController extends Controller
             'new_value'  => 'User menambahkan komentar',
             'created_at' => now(),
         ]);
+
+        // Notify Technician
+        if ($ticket->activeAssignment?->technician) {
+            $ticket->activeAssignment->technician->notify(new NewTicketCommentNotification($ticket, auth()->user()->name, route('technician.tickets.show', $ticket->id)));
+        }
 
         return back()->with('success', 'Komentar berhasil ditambahkan.');
     }

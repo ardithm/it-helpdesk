@@ -9,6 +9,8 @@ use App\Models\TicketAttachment;
 use App\Models\TicketComment;
 use App\Models\TicketHistory;
 use App\Models\TicketResolution;
+use App\Notifications\NewTicketCommentNotification;
+use App\Notifications\TicketStatusUpdatedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -65,23 +67,29 @@ class TechnicianTicketController extends Controller
     }
 
     /**
-     * Teknisi mengambil tiket (ASSIGNED → IN PROGRESS).
+     * Teknisi mengambil tiket (ASSIGNED / WAITING → IN PROGRESS).
      */
     public function startWork(Ticket $ticket)
     {
         abort_unless($ticket->activeAssignment?->technician_id === auth()->id(), 403);
-        abort_unless($ticket->status === Ticket::STATUS_ASSIGNED, 422);
+        abort_unless(
+            in_array($ticket->status, [Ticket::STATUS_ASSIGNED, Ticket::STATUS_WAITING]),
+            422
+        );
 
+        $oldStatus = $ticket->status;
         $ticket->update(['status' => Ticket::STATUS_IN_PROGRESS]);
 
         TicketHistory::create([
             'ticket_id'  => $ticket->id,
             'user_id'    => auth()->id(),
             'action'     => 'status.changed',
-            'old_value'  => Ticket::STATUS_ASSIGNED,
+            'old_value'  => $oldStatus,
             'new_value'  => Ticket::STATUS_IN_PROGRESS,
             'created_at' => now(),
         ]);
+
+        $ticket->user->notify(new TicketStatusUpdatedNotification($ticket));
 
         return back()->with('success', 'Tiket sedang dalam pengerjaan.');
     }
@@ -113,6 +121,8 @@ class TechnicianTicketController extends Controller
             'new_value'  => Ticket::STATUS_WAITING,
             'created_at' => now(),
         ]);
+
+        $ticket->user->notify(new TicketStatusUpdatedNotification($ticket));
 
         return back()->with('success', 'Status tiket diubah menjadi Waiting.');
     }
@@ -185,6 +195,8 @@ class TechnicianTicketController extends Controller
 
             AuditLog::record('ticket.resolved', $ticket, null, ['resolved_by' => auth()->user()->name]);
 
+            $ticket->user->notify(new TicketStatusUpdatedNotification($ticket));
+
             DB::commit();
             return redirect()->route('technician.tickets.show', $ticket)
                 ->with('success', 'Tiket berhasil diselesaikan. Menunggu konfirmasi dari user.');
@@ -212,6 +224,10 @@ class TechnicianTicketController extends Controller
             'comment'     => $request->comment,
             'is_internal' => $request->boolean('is_internal'),
         ]);
+
+        if (! $request->boolean('is_internal')) {
+            $ticket->user->notify(new NewTicketCommentNotification($ticket, auth()->user()->name, route('user.tickets.show', $ticket->id)));
+        }
 
         return back()->with('success', 'Komentar berhasil ditambahkan.');
     }

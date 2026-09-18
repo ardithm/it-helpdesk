@@ -10,6 +10,9 @@ use App\Models\TicketAssignment;
 use App\Models\TicketComment;
 use App\Models\TicketHistory;
 use App\Models\User;
+use App\Notifications\NewTicketCommentNotification;
+use App\Notifications\TicketAssignedNotification;
+use App\Notifications\TicketStatusUpdatedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -184,6 +187,9 @@ class HelpdeskTicketController extends Controller
 
             AuditLog::record('ticket.assigned', $ticket, null, ['technician' => $technician->name]);
 
+            // Notify Technician
+            $technician->notify(new TicketAssignedNotification($ticket));
+
             DB::commit();
             return back()->with('success', "Tiket berhasil diassign kepada {$technician->name}.");
         } catch (\Throwable $e) {
@@ -208,6 +214,14 @@ class HelpdeskTicketController extends Controller
             'comment'     => $request->comment,
             'is_internal' => $request->boolean('is_internal'),
         ]);
+
+        if (! $request->boolean('is_internal')) {
+            $ticket->user->notify(new NewTicketCommentNotification($ticket, auth()->user()->name, route('user.tickets.show', $ticket->id)));
+        }
+        
+        if ($ticket->activeAssignment?->technician && $ticket->activeAssignment->technician->id !== auth()->id()) {
+            $ticket->activeAssignment->technician->notify(new NewTicketCommentNotification($ticket, auth()->user()->name, route('technician.tickets.show', $ticket->id)));
+        }
 
         return back()->with('success', 'Komentar berhasil ditambahkan.');
     }
@@ -242,6 +256,10 @@ class HelpdeskTicketController extends Controller
             'new_value'  => $newStatus,
             'created_at' => now(),
         ]);
+
+        if ($oldStatus !== $newStatus) {
+            $ticket->user->notify(new TicketStatusUpdatedNotification($ticket));
+        }
 
         return back()->with('success', "Status tiket diubah menjadi " . strtoupper($newStatus) . ".");
     }

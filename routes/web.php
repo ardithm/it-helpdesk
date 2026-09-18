@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\SlaPolicyController;
 use App\Http\Controllers\Admin\AssetController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -46,6 +47,11 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // ── Notifications ────────────────────────────────────────────────────────
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+    Route::get('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
 
     // ── Profile (semua role) ──────────────────────────────────────────────────
     Route::prefix('profile')->name('profile.')->group(function () {
